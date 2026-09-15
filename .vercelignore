@@ -1,0 +1,16 @@
+# Archivos que NO se suben al deploy (solo desarrollo / documentación)
+
+# Script de desarrollo para regenerar los íconos PNG
+generate-icons.js
+
+# Scripts temporales de verificación
+_*.js
+
+# Documentación
+*.md
+
+# Control de versiones y metadatos de Vercel
+.git
+.vercel
+.gitignore
+.vercelignore

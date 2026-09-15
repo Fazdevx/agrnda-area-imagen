@@ -1,0 +1,12 @@
+# Vercel (carpeta de configuración local del CLI)
+.vercel
+
+# Node
+node_modules/
+
+# Scripts temporales de verificación
+_*.js
+
+# Sistema
+.DS_Store
+Thumbs.db
