@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#3b82f6">
+  <meta name="apple-mobile-web-app-title" content="TareasApp">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Gestor de tareas por persona, estilo Notion. Organiza tus tareas, asígnelas a personas y lleva el control de todo con un sistema de etiquetas y colores.">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
+  <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
+  <link rel="apple-touch-icon" href="icons/icon-512.png">
+  <link rel="mask-icon" href="icons/icon-512.png" color="#3b82f6">
+  <title>Notion · Tareas por persona</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    /* ============================
+       VARIABLES DE TEMA
+       ============================ */
+    :root {
+      --bg-app: #f7f6f3;
+      --bg-card: #ffffff;
+      --bg-hover: #f5f5f5;
+      --bg-soft: #fafafa;
+      --bg-header: #ffffff;
+      --bg-input: #ffffff;
+      --bg-dashed: #fafafa;
+      --border: #ebebeb;
+      --border-soft: #f0f0f0;
+      --border-dashed: #d0d0d0;
+      --text-main: #1f1f1f;
+      --text-soft: #2d2d2d;
+      --text-muted: #6b6b6b;
+      --text-faint: #9ca3af;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --accent-soft: rgba(59, 130, 246, 0.1);
+      --danger: #dc2626;
+      --danger-soft: #fee2e2;
+      --tag-bg: #eaeaea;
+      --tag-text: #4a4a4a;
+      --shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+      --shadow-hover: 0 8px 16px rgba(0, 0, 0, 0.04);
+      --shadow-container: 0 4px 20px rgba(0, 0, 0, 0.05);
+      --badge-bg: #f0f0f0;
+      --badge-text: #3d3d3d;
+    }
+
+    body.dark {
+      --bg-app: #191919;
+      --bg-card: #252525;
+      --bg-hover: #2f2f2f;
+      --bg-soft: #2a2a2a;
+      --bg-header: #252525;
+      --bg-input: #2a2a2a;
+      --bg-dashed: #202020;
+      --border: #333333;
+      --border-soft: #2f2f2f;
+      --border-dashed: #404040;
+      --text-main: #efefef;
+      --text-soft: #d4d4d4;
+      --text-muted: #a0a0a0;
+      --text-faint: #6b6b6b;
+      --accent: #60a5fa;
+      --accent-hover: #3b82f6;
+      --accent-soft: rgba(96, 165, 250, 0.15);
+      --danger: #f87171;
+      --danger-soft: #4a1e1e;
+      --tag-bg: #333333;
+      --tag-text: #c0c0c0;
+      --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      --shadow-hover: 0 8px 16px rgba(0, 0, 0, 0.4);
+      --shadow-container: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      --badge-bg: #333333;
+      --badge-text: #d0d0d0;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background: var(--bg-app);
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem;
+      min-height: 100vh;
+      transition: background 0.3s ease;
+    }
+
+    .notion-container {
+      max-width: 1200px;
+      width: 100%;
+      background: var(--bg-card);
+      border-radius: 20px;
+      box-shadow: var(--shadow-container);
+      padding: 2.5rem 2.2rem;
+      transition: background 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    /* ============================
+       HEADER
+       ============================ */
+    .notion-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .notion-header h1 {
+      font-size: 2.2rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: color 0.3s ease;
+    }
+
+    .notion-header h1 i {
+      color: var(--accent);
+      font-size: 2rem;
+      transition: color 0.3s ease;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .notion-badge {
+      background: var(--badge-bg);
+      color: var(--badge-text);
+      border-radius: 30px;
+      padding: 0.3rem 1rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.3s ease;
+    }
+
+    /* Botón modo oscuro */
+    .theme-toggle {
+      background: var(--badge-bg);
+      color: var(--badge-text);
+      border: none;
+      cursor: pointer;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
+    }
+    .theme-toggle:hover {
+      background: var(--bg-hover);
+      transform: rotate(15deg);
+    }
+
+    /* Botón "Instalar app" (PWA) */
+    .install-btn {
+      background: var(--accent);
+      color: #ffffff;
+      border: none;
+      cursor: pointer;
+      height: 38px;
+      padding: 0 1rem;
+      border-radius: 30px;
+      display: none;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+    .install-btn.show {
+      display: inline-flex;
+    }
+    .install-btn:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    /* BOTONES */
+    .btn {
+      border: none;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px dashed var(--border-dashed);
+    }
+    .btn-ghost:hover {
+      background: var(--bg-hover);
+      color: var(--text-main);
+    }
+
+    .btn-icon {
+      background: transparent;
+      border: none;
+      color: var(--text-faint);
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-icon:hover {
+      background: var(--bg-hover);
+      color: var(--text-main);
+    }
+    .btn-icon.delete:hover {
+      background: var(--danger-soft);
+      color: var(--danger);
+    }
+
+    /* ============================
+       GRID
+       ============================ */
+    .personas-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.8rem;
+      margin-top: 1rem;
+    }
+
+    .persona-card {
+      background: var(--bg-card);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      height: fit-content;
+    }
+
+    .persona-card:hover {
+      border-color: var(--border-dashed);
+      box-shadow: var(--shadow-hover);
+    }
+
+    /* Drop zone resaltada */
+    .persona-card.drag-over {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .persona-header {
+      padding: 1.3rem 1.5rem 1rem 1.5rem;
+      border-bottom: 1px solid var(--border-soft);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: border-color 0.3s ease;
+    }
+
+    .persona-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 1.2rem;
+      color: white;
+      flex-shrink: 0;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.15s;
+    }
+    .persona-avatar:hover {
+      transform: scale(1.05);
+    }
+
+    .persona-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .persona-nombre {
+      font-weight: 600;
+      font-size: 1.2rem;
+      color: var(--text-main);
+      line-height: 1.3;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      transition: color 0.3s ease;
+    }
+
+    .persona-nombre[contenteditable="true"] {
+      outline: 2px solid var(--accent);
+      border-radius: 4px;
+      padding: 2px 4px;
+    }
+
+    .persona-rol {
+      font-size: 0.75rem;
+      font-weight: 500;
+      background: var(--badge-bg);
+      color: var(--badge-text);
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      transition: all 0.3s ease;
+    }
+    .persona-rol[contenteditable="true"] {
+      outline: 2px solid var(--accent);
+      border-radius: 20px;
+    }
+
+    .persona-actions {
+      display: flex;
+      gap: 2px;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .persona-card:hover .persona-actions {
+      opacity: 1;
+    }
+
+    /* ============================
+       TAREAS
+       ============================ */
+    .tareas-container {
+      padding: 1rem 1.2rem 1.2rem 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+      min-height: 60px;
+    }
+
+    .tarea-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 0.6rem 0.8rem;
+      border-radius: 10px;
+      background: var(--bg-soft);
+      border: 1px solid var(--border-soft);
+      transition: all 0.15s;
+      position: relative;
+      cursor: grab;
+    }
+
+    .tarea-item:active {
+      cursor: grabbing;
+    }
+
+    .tarea-item:hover {
+      background: var(--bg-hover);
+      border-color: var(--border-dashed);
+    }
+
+    .tarea-item.dragging {
+      opacity: 0.4;
+      cursor: grabbing;
+    }
+
+    .tarea-item.drag-ghost {
+      border: 2px dashed var(--accent);
+      background: var(--accent-soft);
+    }
+
+    /* Línea indicadora entre tareas */
+    .tarea-item.drop-before::before,
+    .tarea-item.drop-after::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--accent);
+      border-radius: 2px;
+      box-shadow: 0 0 8px var(--accent);
+    }
+    .tarea-item.drop-before::before {
+      top: -5px;
+    }
+    .tarea-item.drop-after::after {
+      bottom: -5px;
+    }
+
+    .drag-handle {
+      color: var(--text-faint);
+      font-size: 0.75rem;
+      margin-top: 4px;
+      flex-shrink: 0;
+      opacity: 0;
+      transition: opacity 0.15s;
+      cursor: grab;
+    }
+    .tarea-item:hover .drag-handle {
+      opacity: 1;
+    }
+
+    .tarea-check {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      border: 2px solid var(--text-faint);
+      background: var(--bg-card);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+    }
+
+    .tarea-check.completada {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .tarea-check i {
+      font-size: 10px;
+      color: white;
+      display: none;
+    }
+
+    .tarea-check.completada i {
+      display: block;
+    }
+
+    .tarea-contenido {
+      flex: 1;
+      font-size: 0.92rem;
+      color: var(--text-soft);
+      line-height: 1.45;
+      word-break: break-word;
+      min-width: 0;
+      transition: color 0.3s ease;
+    }
+
+    .tarea-contenido.completada {
+      text-decoration: line-through;
+      opacity: 0.6;
+    }
+
+    .tarea-texto[contenteditable="true"] {
+      outline: 2px solid var(--accent);
+      border-radius: 4px;
+      padding: 2px 4px;
+      display: block;
+      min-width: 20px;
+    }
+
+    .tarea-actions {
+      display: flex;
+      gap: 2px;
+      opacity: 0;
+      transition: opacity 0.15s;
+      flex-shrink: 0;
+    }
+    .tarea-item:hover .tarea-actions {
+      opacity: 1;
+    }
+
+    .tarea-etiqueta {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 500;
+      padding: 0.15rem 0.5rem;
+      border-radius: 30px;
+      background: var(--tag-bg);
+      color: var(--tag-text);
+      margin-left: 6px;
+      white-space: nowrap;
+      transition: all 0.3s ease;
+    }
+
+    .add-tarea {
+      margin-top: 0.3rem;
+      padding: 0.5rem 0.8rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 1px dashed var(--border-dashed);
+      background: var(--bg-card);
+      width: 100%;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+
+    .add-tarea:hover {
+      background: var(--bg-hover);
+      color: var(--text-main);
+    }
+
+    .nueva-tarea-input {
+      padding: 0.5rem 0.8rem;
+      font-size: 0.85rem;
+      border-radius: 8px;
+      border: 1px solid var(--accent);
+      outline: none;
+      font-family: inherit;
+      width: 100%;
+      background: var(--bg-input);
+      color: var(--text-main);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    /* ============================
+       AÑADIR PERSONA
+       ============================ */
+    .add-persona-card {
+      border: 2px dashed var(--border-dashed);
+      border-radius: 16px;
+      background: var(--bg-dashed);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2.5rem 1.5rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      min-height: 180px;
+      color: var(--text-muted);
+      gap: 10px;
+    }
+    .add-persona-card:hover {
+      background: var(--bg-hover);
+      border-color: var(--text-faint);
+      color: var(--text-main);
+    }
+    .add-persona-card i {
+      font-size: 1.8rem;
+    }
+    .add-persona-card span {
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+
+    .add-persona-form {
+      background: var(--bg-card);
+      border: 1px solid var(--accent);
+      border-radius: 16px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .add-persona-form input {
+      padding: 0.6rem 0.8rem;
+      font-size: 0.9rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-dashed);
+      outline: none;
+      font-family: inherit;
+      background: var(--bg-input);
+      color: var(--text-main);
+    }
+    .add-persona-form input:focus {
+      border-color: var(--accent);
+    }
+
+    .add-persona-form .form-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .color-picker {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+    .color-option {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform 0.15s;
+    }
+    .color-option:hover {
+      transform: scale(1.1);
+    }
+    .color-option.selected {
+      box-shadow: 0 0 0 2px var(--bg-card), 0 0 0 4px var(--text-main);
+    }
+
+    /* ============================
+       RESPONSIVE
+       ============================ */
+    @media (max-width: 600px) {
+      .notion-container {
+        padding: 1.5rem 1rem;
+      }
+      .notion-header h1 {
+        font-size: 1.6rem;
+      }
+      .install-btn {
+        padding: 0 0.8rem;
+        font-size: 0.75rem;
+      }
+      .personas-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ============================
+       TOAST
+       ============================ */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--text-main);
+      color: var(--bg-card);
+      padding: 0.7rem 1.4rem;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      opacity: 0;
+      transition: all 0.3s;
+      z-index: 999;
+      pointer-events: none;
+    }
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="notion-container">
+    <div class="notion-header">
+      <h1>
+        <i class="fas fa-check-circle"></i>
+        Tareas por persona
+      </h1>
+      <div class="header-right">
+        <div class="notion-badge" id="statsBadge">
+          <i class="fas fa-users"></i> <span id="statsText">0 personas · 0 tareas</span>
+        </div>
+        <button class="install-btn" id="installBtn" title="Instalar como aplicación">
+          <i class="fas fa-download"></i> Instalar app
+        </button>
+        <button class="theme-toggle" id="themeToggle" title="Cambiar tema">
+          <i class="fas fa-moon"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="personas-grid" id="personasGrid"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ============================
+    // ESTADO
+    // ============================
+    const STORAGE_KEY = 'notion_tareas_personas_v2';
+    const THEME_KEY = 'notion_theme_v1';
+
+    const COLORES = [
+      '#8b5cf6', '#ec4899', '#10b981', '#f59e0b',
+      '#3b82f6', '#ef4444', '#06b6d4', '#84cc16',
+    ];
+
+    let estado = { personas: [] };
+
+    // ============================
+    // TEMA
+    // ============================
+    function aplicarTema(tema) {
+      const body = document.body;
+      const icon = document.querySelector('#themeToggle i');
+      const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+      if (tema === 'dark') {
+        body.classList.add('dark');
+        icon.className = 'fas fa-sun';
+        if (themeColorMeta) themeColorMeta.setAttribute('content', '#191919');
+      } else {
+        body.classList.remove('dark');
+        icon.className = 'fas fa-moon';
+        if (themeColorMeta) themeColorMeta.setAttribute('content', '#3b82f6');
+      }
+    }
+
+    function toggleTema() {
+      const esOscuro = document.body.classList.contains('dark');
+      const nuevoTema = esOscuro ? 'light' : 'dark';
+      aplicarTema(nuevoTema);
+      localStorage.setItem(THEME_KEY, nuevoTema);
+    }
+
+    function cargarTema() {
+      const guardado = localStorage.getItem(THEME_KEY);
+      if (guardado) {
+        aplicarTema(guardado);
+      } else {
+        // Detectar preferencia del sistema
+        const prefiereOscuro = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        aplicarTema(prefiereOscuro ? 'dark' : 'light');
+      }
+    }
+
+    // ============================
+    // PERSISTENCIA
+    // ============================
+    function guardarEstado() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(estado));
+      } catch (e) {
+        console.error('No se pudo guardar', e);
+      }
+    }
+
+    function cargarEstado() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) estado = JSON.parse(raw);
+      } catch (e) {
+        console.error('No se pudo cargar', e);
+      }
+
+      if (!estado.personas || estado.personas.length === 0) {
+        estado.personas = [
+          {
+            id: 'p1', nombre: 'Fabrizio', rol: 'Difusión', color: '#8b5cf6',
+            tareas: [
+              { id: 't1', texto: 'Canal de difusión — Publicaciones, info, mensajes a la comunidad', etiqueta: 'Cole y Pre', completada: false },
+              { id: 't2', texto: 'Bot de automatización de publicaciones · redes', etiqueta: '', completada: false },
+              { id: 't3', texto: 'Adm. canal de difusión — gestión y monitoreo', etiqueta: '', completada: false },
+            ]
+          },
+          {
+            id: 'p2', nombre: 'Karla', rol: 'Comunidad', color: '#ec4899',
+            tareas: [
+              { id: 't4', texto: 'Interacción con alumnos — comunidad y presencial', etiqueta: 'Cole (privado)', completada: false },
+              { id: 't5', texto: 'Hacer dinámicas — actividades y participación', etiqueta: '', completada: false },
+            ]
+          },
+          {
+            id: 'p3', nombre: 'Sebastián', rol: 'Plan de trabajo', color: '#10b981',
+            tareas: [
+              { id: 't6', texto: 'Plan de trabajo — estructura y seguimiento', etiqueta: 'Estratégico', completada: false },
+              { id: 't7', texto: 'Coordinar con Fabrizio y Karla — revisión de avances', etiqueta: '', completada: false },
+            ]
+          }
+        ];
+        guardarEstado();
+      }
+    }
+
+    // ============================
+    // UTILIDADES
+    // ============================
+    function uid(prefix = 'id') {
+      return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    }
+    function escaparHTML(str) {
+      const div = document.createElement('div');
+      div.textContent = str || '';
+      return div.innerHTML;
+    }
+    function mostrarToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+    function actualizarStats() {
+      const totalTareas = estado.personas.reduce((acc, p) => acc + p.tareas.length, 0);
+      const totalPersonas = estado.personas.length;
+      document.getElementById('statsText').textContent =
+        `${totalPersonas} persona${totalPersonas !== 1 ? 's' : ''} · ${totalTareas} tarea${totalTareas !== 1 ? 's' : ''}`;
+    }
+
+    // ============================
+    // RENDER
+    // ============================
+    function renderizar() {
+      const grid = document.getElementById('personasGrid');
+      grid.innerHTML = '';
+      estado.personas.forEach(persona => grid.appendChild(crearTarjetaPersona(persona)));
+      grid.appendChild(crearBotonAgregarPersona());
+      actualizarStats();
+    }
+
+    function crearTarjetaPersona(persona) {
+      const card = document.createElement('div');
+      card.className = 'persona-card';
+      card.dataset.id = persona.id;
+
+      // ---- HEADER ----
+      const header = document.createElement('div');
+      header.className = 'persona-header';
+
+      const avatar = document.createElement('div');
+      avatar.className = 'persona-avatar';
+      avatar.style.background = persona.color;
+      avatar.textContent = (persona.nombre || '?').charAt(0).toUpperCase();
+      avatar.title = 'Clic para cambiar color';
+      avatar.addEventListener('click', () => cambiarColor(persona.id));
+
+      const info = document.createElement('div');
+      info.className = 'persona-info';
+
+      const nombreEl = document.createElement('div');
+      nombreEl.className = 'persona-nombre';
+      nombreEl.innerHTML = `
+        <span class="persona-nombre-texto" data-field="nombre">${escaparHTML(persona.nombre)}</span>
+        <span class="persona-rol" data-field="rol">${escaparHTML(persona.rol || '')}</span>
+      `;
+      nombreEl.querySelector('[data-field="nombre"]').addEventListener('dblclick', (e) => editarInline(e.target, persona.id, 'nombre'));
+      nombreEl.querySelector('[data-field="rol"]').addEventListener('dblclick', (e) => editarInline(e.target, persona.id, 'rol'));
+      info.appendChild(nombreEl);
+
+      const actions = document.createElement('div');
+      actions.className = 'persona-actions';
+      const btnEliminar = document.createElement('button');
+      btnEliminar.className = 'btn-icon delete';
+      btnEliminar.title = 'Eliminar persona';
+      btnEliminar.innerHTML = '<i class="fas fa-trash"></i>';
+      btnEliminar.addEventListener('click', () => eliminarPersona(persona.id));
+      actions.appendChild(btnEliminar);
+
+      header.appendChild(avatar);
+      header.appendChild(info);
+      header.appendChild(actions);
+
+      // ---- TAREAS ----
+      const tareasContainer = document.createElement('div');
+      tareasContainer.className = 'tareas-container';
+      tareasContainer.dataset.personaId = persona.id;
+
+      persona.tareas.forEach(tarea => {
+        tareasContainer.appendChild(crearItemTarea(tarea, persona.id));
+      });
+
+      // Botón añadir tarea
+      const btnAddTarea = document.createElement('button');
+      btnAddTarea.className = 'add-tarea';
+      btnAddTarea.innerHTML = '<i class="fas fa-plus"></i> Añadir tarea';
+      btnAddTarea.addEventListener('click', () => mostrarInputNuevaTarea(tareasContainer, btnAddTarea, persona.id));
+      tareasContainer.appendChild(btnAddTarea);
+
+      // ---- DROP ZONE de la card completa ----
+      card.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        card.classList.add('drag-over');
+      });
+      card.addEventListener('dragleave', (e) => {
+        if (!card.contains(e.relatedTarget)) card.classList.remove('drag-over');
+      });
+      card.addEventListener('drop', (e) => {
+        e.preventDefault();
+        card.classList.remove('drag-over');
+        // Si se suelta en el header o espacio vacío → mover al final
+        const personaId = card.dataset.id;
+        moverTareaAlFinal(personaId);
+      });
+
+      card.appendChild(header);
+      card.appendChild(tareasContainer);
+      return card;
+    }
+
+    function crearItemTarea(tarea, personaId) {
+      const item = document.createElement('div');
+      item.className = 'tarea-item';
+      item.dataset.id = tarea.id;
+      item.dataset.personaId = personaId;
+      item.draggable = true;
+
+      // Drag handle
+      const handle = document.createElement('i');
+      handle.className = 'fas fa-grip-vertical drag-handle';
+      handle.title = 'Arrastrar para reordenar';
+
+      const check = document.createElement('div');
+      check.className = 'tarea-check' + (tarea.completada ? ' completada' : '');
+      check.innerHTML = '<i class="fas fa-check"></i>';
+      check.addEventListener('click', () => toggleTarea(personaId, tarea.id));
+
+      const contenido = document.createElement('div');
+      contenido.className = 'tarea-contenido' + (tarea.completada ? ' completada' : '');
+
+      const textoEl = document.createElement('span');
+      textoEl.className = 'tarea-texto';
+      textoEl.textContent = tarea.texto;
+      textoEl.title = 'Doble clic para editar';
+      textoEl.addEventListener('dblclick', () => editarInline(textoEl, personaId, 'tarea', tarea.id));
+      contenido.appendChild(textoEl);
+
+      if (tarea.etiqueta) {
+        const et = document.createElement('span');
+        et.className = 'tarea-etiqueta';
+        et.textContent = tarea.etiqueta;
+        contenido.appendChild(et);
+      }
+
+      const actions = document.createElement('div');
+      actions.className = 'tarea-actions';
+      const btnEliminar = document.createElement('button');
+      btnEliminar.className = 'btn-icon delete';
+      btnEliminar.title = 'Eliminar tarea';
+      btnEliminar.innerHTML = '<i class="fas fa-times"></i>';
+      btnEliminar.addEventListener('click', () => eliminarTarea(personaId, tarea.id));
+      actions.appendChild(btnEliminar);
+
+      item.appendChild(handle);
+      item.appendChild(check);
+      item.appendChild(contenido);
+      item.appendChild(actions);
+
+      // ============================
+      // EVENTOS DRAG & DROP
+      // ============================
+      item.addEventListener('dragstart', (e) => {
+        item.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', JSON.stringify({
+          tareaId: tarea.id,
+          personaId: personaId
+        }));
+        // Imagen fantasma
+        const ghost = item.cloneNode(true);
+        ghost.style.position = 'absolute';
+        ghost.style.top = '-9999px';
+        ghost.style.opacity = '0.5';
+        document.body.appendChild(ghost);
+        e.dataTransfer.setDragImage(ghost, 20, 20);
+        setTimeout(() => ghost.remove(), 0);
+      });
+
+      item.addEventListener('dragend', () => {
+        item.classList.remove('dragging');
+        // Limpiar indicadores
+        document.querySelectorAll('.drop-before, .drop-after').forEach(el => {
+          el.classList.remove('drop-before', 'drop-after');
+        });
+        document.querySelectorAll('.persona-card.drag-over').forEach(c => c.classList.remove('drag-over'));
+      });
+
+      item.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const rect = item.getBoundingClientRect();
+        const midpoint = rect.top + rect.height / 2;
+        // Limpiar indicadores previos en otros items
+        document.querySelectorAll('.drop-before, .drop-after').forEach(el => {
+          if (el !== item) el.classList.remove('drop-before', 'drop-after');
+        });
+        if (e.clientY < midpoint) {
+          item.classList.remove('drop-after');
+          item.classList.add('drop-before');
+        } else {
+          item.classList.remove('drop-before');
+          item.classList.add('drop-after');
+        }
+        e.dataTransfer.dropEffect = 'move';
+      });
+
+      item.addEventListener('dragleave', (e) => {
+        if (!item.contains(e.relatedTarget)) {
+          item.classList.remove('drop-before', 'drop-after');
+        }
+      });
+
+      item.addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        item.classList.remove('drop-before', 'drop-after');
+
+        let data;
+        try { data = JSON.parse(e.dataTransfer.getData('text/plain')); } catch { return; }
+        if (!data.tareaId) return;
+
+        const rect = item.getBoundingClientRect();
+        const midpoint = rect.top + rect.height / 2;
+        const antes = e.clientY < midpoint;
+
+        moverTarea(data.tareaId, data.personaId, tarea.id, personaId, antes);
+      });
+
+      return item;
+    }
+
+    function crearBotonAgregarPersona() {
+      const btn = document.createElement('div');
+      btn.className = 'add-persona-card';
+      btn.innerHTML = `<i class="fas fa-user-plus"></i><span>Añadir persona</span>`;
+      btn.addEventListener('click', () => mostrarFormPersona(btn));
+      return btn;
+    }
+
+    // ============================
+    // DRAG & DROP: LÓGICA DE MOVIMIENTO
+    // ============================
+    function moverTareaAlFinal(personaDestinoId) {
+      // Se llama si se suelta en el header/espacio vacío de la card
+      // No tenemos tarea de origen aquí, se maneja desde el drop del item
+      // Este método queda para futura extensión
+    }
+
+    function moverTarea(tareaId, personaOrigenId, tareaDestinoId, personaDestinoId, antes) {
+      const personaOrigen = estado.personas.find(p => p.id === personaOrigenId);
+      const personaDestino = estado.personas.find(p => p.id === personaDestinoId);
+      if (!personaOrigen || !personaDestino) return;
+
+      const idxOrigen = personaOrigen.tareas.findIndex(t => t.id === tareaId);
+      if (idxOrigen === -1) return;
+
+      const [tareaMovida] = personaOrigen.tareas.splice(idxOrigen, 1);
+
+      if (personaOrigenId === personaDestinoId) {
+        // Mismo contenedor: insertar según posición
+        let idxDestino = personaDestino.tareas.findIndex(t => t.id === tareaDestinoId);
+        if (idxDestino === -1) {
+          personaDestino.tareas.push(tareaMovida);
+        } else {
+          if (!antes) idxDestino++;
+          personaDestino.tareas.splice(idxDestino, 0, tareaMovida);
+        }
+      } else {
+        // Distinto contenedor
+        let idxDestino = personaDestino.tareas.findIndex(t => t.id === tareaDestinoId);
+        if (idxDestino === -1) {
+          personaDestino.tareas.push(tareaMovida);
+        } else {
+          if (!antes) idxDestino++;
+          personaDestino.tareas.splice(idxDestino, 0, tareaMovida);
+        }
+      }
+
+      guardarEstado();
+      renderizar();
+      mostrarToast('Tarea movida');
+    }
+
+    // ============================
+    // ACCIONES TAREAS
+    // ============================
+    function toggleTarea(personaId, tareaId) {
+      const persona = estado.personas.find(p => p.id === personaId);
+      const tarea = persona?.tareas.find(t => t.id === tareaId);
+      if (!tarea) return;
+      tarea.completada = !tarea.completada;
+      guardarEstado();
+      renderizar();
+    }
+
+    function eliminarTarea(personaId, tareaId) {
+      const persona = estado.personas.find(p => p.id === personaId);
+      if (!persona) return;
+      if (!confirm('¿Eliminar esta tarea?')) return;
+      persona.tareas = persona.tareas.filter(t => t.id !== tareaId);
+      guardarEstado();
+      renderizar();
+      mostrarToast('Tarea eliminada');
+    }
+
+    function mostrarInputNuevaTarea(container, btn, personaId) {
+      btn.style.display = 'none';
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'nueva-tarea-input';
+      input.placeholder = 'Escribe la tarea y presiona Enter...';
+      container.appendChild(input);
+      input.focus();
+
+      const finalizar = (guardar) => {
+        const texto = input.value.trim();
+        input.remove();
+        btn.style.display = '';
+        if (guardar && texto) agregarTarea(personaId, texto);
+      };
+
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); finalizar(true); }
+        else if (e.key === 'Escape') finalizar(false);
+      });
+      input.addEventListener('blur', () => {
+        setTimeout(() => { if (document.body.contains(input)) finalizar(true); }, 100);
+      });
+    }
+
+    function agregarTarea(personaId, texto) {
+      const persona = estado.personas.find(p => p.id === personaId);
+      if (!persona) return;
+      persona.tareas.push({
+        id: uid('t'), texto, etiqueta: '', completada: false
+      });
+      guardarEstado();
+      renderizar();
+      mostrarToast('Tarea añadida');
+    }
+
+    // ============================
+    // ACCIONES PERSONAS
+    // ============================
+    function eliminarPersona(personaId) {
+      const persona = estado.personas.find(p => p.id === personaId);
+      if (!persona) return;
+      if (!confirm(`¿Eliminar a "${persona.nombre}" y todas sus tareas?`)) return;
+      estado.personas = estado.personas.filter(p => p.id !== personaId);
+      guardarEstado();
+      renderizar();
+      mostrarToast('Persona eliminada');
+    }
+
+    function mostrarFormPersona(btn) {
+      const parent = btn.parentNode;
+      const form = document.createElement('div');
+      form.className = 'add-persona-form';
+      form.innerHTML = `
+        <input type="text" id="nuevaPersonaNombre" placeholder="Nombre de la persona" />
+        <input type="text" id="nuevaPersonaRol" placeholder="Rol (ej. Difusión, Comunidad)" />
+        <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">Color del avatar:</div>
+        <div class="color-picker" id="colorPicker"></div>
+        <div class="form-actions">
+          <button class="btn btn-primary" id="btnCrearPersona">Crear</button>
+          <button class="btn btn-ghost" id="btnCancelarPersona">Cancelar</button>
+        </div>
+      `;
+      parent.replaceChild(form, btn);
+
+      const colorPicker = form.querySelector('#colorPicker');
+      let colorSeleccionado = COLORES[Math.floor(Math.random() * COLORES.length)];
+      COLORES.forEach(c => {
+        const opt = document.createElement('div');
+        opt.className = 'color-option' + (c === colorSeleccionado ? ' selected' : '');
+        opt.style.background = c;
+        opt.addEventListener('click', () => {
+          colorSeleccionado = c;
+          colorPicker.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
+          opt.classList.add('selected');
+        });
+        colorPicker.appendChild(opt);
+      });
+
+      const nombreInput = form.querySelector('#nuevaPersonaNombre');
+      const rolInput = form.querySelector('#nuevaPersonaRol');
+      nombreInput.focus();
+
+      const crear = () => {
+        const nombre = nombreInput.value.trim();
+        const rol = rolInput.value.trim();
+        if (!nombre) { nombreInput.style.borderColor = '#ef4444'; nombreInput.focus(); return; }
+        estado.personas.push({
+          id: uid('p'), nombre, rol, color: colorSeleccionado, tareas: []
+        });
+        guardarEstado();
+        renderizar();
+        mostrarToast(`Persona "${nombre}" añadida`);
+      };
+
+      form.querySelector('#btnCrearPersona').addEventListener('click', crear);
+      form.querySelector('#btnCancelarPersona').addEventListener('click', renderizar);
+
+      [nombreInput, rolInput].forEach(inp => {
+        inp.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') crear();
+          if (e.key === 'Escape') renderizar();
+        });
+      });
+    }
+
+    function cambiarColor(personaId) {
+      const persona = estado.personas.find(p => p.id === personaId);
+      if (!persona) return;
+      const idx = COLORES.indexOf(persona.color);
+      persona.color = COLORES[(idx + 1) % COLORES.length];
+      guardarEstado();
+      renderizar();
+    }
+
+    // ============================
+    // EDICIÓN INLINE
+    // ============================
+    function editarInline(el, personaId, campo, tareaId = null) {
+      if (el.getAttribute('contenteditable') === 'true') return;
+      const textoOriginal = el.textContent;
+      el.setAttribute('contenteditable', 'true');
+      el.focus();
+
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+
+      const guardar = () => {
+        const nuevoTexto = el.textContent.trim();
+        el.setAttribute('contenteditable', 'false');
+        if (nuevoTexto === textoOriginal) return;
+
+        if (campo === 'tarea') {
+          const persona = estado.personas.find(p => p.id === personaId);
+          const tarea = persona?.tareas.find(t => t.id === tareaId);
+          if (tarea) {
+            tarea.texto = nuevoTexto || '(sin título)';
+            guardarEstado();
+            renderizar();
+            mostrarToast('Tarea actualizada');
+          }
+        } else {
+          const persona = estado.personas.find(p => p.id === personaId);
+          if (persona) {
+            persona[campo] = nuevoTexto;
+            guardarEstado();
+            renderizar();
+            mostrarToast('Persona actualizada');
+          }
+        }
+      };
+
+      const cancelar = () => {
+        el.textContent = textoOriginal;
+        el.setAttribute('contenteditable', 'false');
+      };
+
+      el.addEventListener('blur', guardar, { once: true });
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
+        else if (e.key === 'Escape') {
+          e.preventDefault();
+          el.removeEventListener('blur', guardar);
+          cancelar();
+        }
+      });
+    }
+
+    // ============================
+    // INICIALIZAR
+    // ============================
+    cargarTema();
+    document.getElementById('themeToggle').addEventListener('click', toggleTema);
+    cargarEstado();
+    renderizar();
+
+    // ============================
+    // REGISTRO DE SERVICE WORKER (PWA)
+    // ============================
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+          .then(reg => {
+            console.log('Service Worker registrado:', reg.scope);
+          })
+          .catch(err => console.error('Registro de Service Worker falló:', err));
+      });
+    }
+
+    // ============================
+    // INSTALACIÓN COMO APP (PWA)
+    // ============================
+    let deferredPrompt = null;
+    const installBtn = document.getElementById('installBtn');
+
+    // El navegador avisa cuando la app es instalable
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.classList.add('show');
+    });
+
+    // El usuario pulsa "Instalar app"
+    installBtn.addEventListener('click', async () => {
+      if (!deferredPrompt) {
+        mostrarToast('Usa el menú del navegador para instalar la app');
+        return;
+      }
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        mostrarToast('¡App instalada correctamente!');
+      }
+      deferredPrompt = null;
+      installBtn.classList.remove('show');
+    });
+
+    // Al instalarse, ocultar el botón
+    window.addEventListener('appinstalled', () => {
+      deferredPrompt = null;
+      installBtn.classList.remove('show');
+      mostrarToast('¡App instalada correctamente!');
+    });
+
+    // Detectar si ya está instalada (modo standalone) para no mostrar el botón
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+      installBtn.style.display = 'none';
+    }
+  </script>
+</body>
+</html>

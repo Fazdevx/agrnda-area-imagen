@@ -1,0 +1,41 @@
+{
+  "name": "Notion · Tareas por persona",
+  "short_name": "TareasApp",
+  "description": "Gestor de tareas por persona, estilo Notion. Organiza tus tareas, asígnelas a personas y lleva el control de todo con un sistema de etiquetas y colores.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#f7f6f3",
+  "theme_color": "#3b82f6",
+  "categories": ["productivity", "utilities", "office"],
+  "lang": "es",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
